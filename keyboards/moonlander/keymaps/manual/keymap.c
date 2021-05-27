@@ -31,7 +31,7 @@ uint8_t layerBaseColors[][3] = {[BASE] = {HSV_WHITE}, [SYMB] = {HSV_SPRINGGREEN}
 #define classes 3
 #define maxKeys 4
 enum keyTypes { arrowKeys, modifierKeys, deleteKeys, numpadKeys, mouseKeys, specialKeys, multiKeys };
-const uint8_t   keyClassColors[][3] = {{HSV_CYAN}, {HSV_YELLOW}, {HSV_RED}, {HSV_CYAN}, {HSV_CYAN}, {HSV_ORANGE}, {HSV_CORAL}};
+const uint8_t   keyClassColors[][3] = {[arrowKeys] = {HSV_CYAN}, [modifierKeys] = {HSV_YELLOW}, [deleteKeys] = {HSV_RED}, [numpadKeys] = {HSV_CYAN}, [mouseKeys] = {HSV_CYAN}, [specialKeys] = {HSV_ORANGE}, [multiKeys] = {HSV_CORAL}};
 const uint16_t  arrows[maxKeys]     = {KC_LEFT, KC_RIGHT, KC_UP, KC_DOWN};
 const uint16_t  modifiers[maxKeys]  = {KC_TAB, KC_LSPO, KC_RSPC};
 const uint16_t  deletes[maxKeys]    = {KC_BSPACE, KC_DELETE};
@@ -89,11 +89,12 @@ void set_layer_color(int layer) {
     }
 }
 
-void rgb_matrix_indicators_user(void) {
+layer_state_t layer_state_set_user(layer_state_t layer_state) {
     if (g_suspend_state || keyboard_config.disable_layer_led) {
-        return;
+        return layer_state;
     }
-    switch (biton32(layer_state)) {
+    uint8_t layer = biton32(layer_state);
+    switch (layer) {
         case BASE:
             set_layer_color(BASE);
             break;
@@ -107,6 +108,7 @@ void rgb_matrix_indicators_user(void) {
             if (rgb_matrix_get_flags() == LED_FLAG_NONE) rgb_matrix_set_color_all(0, 0, 0);
             break;
     }
+    return layer_state;
 }
 
 bool    GUI_ENABLED = true;
@@ -155,27 +157,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 raw_hid_receive(testdata, 3);
                 return false;
             }
+        case LGUI_T(KC_Z):
+        //if we have winkey turned off we want to just treat it like the Z key. otherwise normal
+            if (GUI_ENABLED) {
+                return true;
+            }
+            if (record->event.pressed) {
+                register_code(KC_Z);
+            } else {
+                unregister_code(KC_Z);
+            }
+            return false;
     }
     return true;
 }
 const int LEDS[] = {11, 7, 12, 17};
 void      raw_hid_receive(uint8_t *data, uint8_t length) {
-    // on data receive from HID info
-    raw_hid_send(data, length);
-    // send back data as ACK
-    // want 1 uint8_t data in [0 255] to set RGB for WASD
-    switch (length) {
-        case 1:
-            for (int led = 0; led < 4; led++) {
-                rgb_matrix_set_color(LEDS[led], 1.0 - (float)*data / 255.0, (float)*data / 255.0, 0);
-            }
-            break;
-        case 2:
-            break;
-        case 3:
-            for (int led = 0; led < 4; led++) {
-                rgb_matrix_set_color(LEDS[led], (float)data[0] / 255.0, (float)data[1] / 255.0, (float)data[2] / 255.0);
-            }
-            break;
+    if (length == 0) return;
+    uint8_t i   = 0;
+    uint8_t cmd = data[i++];  // the number we received
+    for (int j = 0; j < 4; j++) {
+        rgb_matrix_set_color(LEDS[j], cmd, 255 - cmd, 0);
     }
 };
+
+void suspend_wakeup_init_user(void) { layer_move(BASE); }
