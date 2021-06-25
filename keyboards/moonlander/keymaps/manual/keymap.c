@@ -1,10 +1,9 @@
-#include QMK_KEYBOARD_H
-#include "version.h"
+#include QMK_KEYBOARD_H  //NOLINT
+#include "version.h"     //NOLINT
 #include "raw_hid.h"
 #include "rgblight_list.h"
 
 #define MOON_LED_LEVEL LED_LEVEL
-#define ____ KC_TRANSPARENT
 
 /* thots :
 we want to define a custom struct that has enough supporting functions that we basically are mapping a color to a keytype.
@@ -12,13 +11,40 @@ when we set a color, I want to be able to look at the keycode for the key I'm se
 like: setcolor(12) -> looks up what keycode is at position 12 -> it's L_CTRL (for instance) -> L_CTRL is in the MODIFIER group -> the key is set with a MODIFIER color
 */
 enum custom_keycodes { RGB_SLD = ML_SAFE_RANGE, HSV_0_255_255, HSV_86_255_128, HSV_172_255_255, TOGGLE_GUI, TEST_HID };
-enum layers { BASE, SYMB, MEDIA };
+enum layers { BASE, NOGUI, SYMB, MEDIA };
+bool GUI_ENABLED = true;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    [BASE]  = LAYOUT_moonlander(KC_EQUAL, KC_1, KC_2, KC_3, KC_4, KC_5, KC_LEFT, KC_RIGHT, KC_6, KC_7, KC_8, KC_9, KC_0, KC_MINUS, KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, TG(SYMB), TG(SYMB), KC_Y, KC_U, KC_I, KC_O, KC_P, KC_BSLASH, KC_BSPACE, KC_A, KC_S, KC_D, KC_F, KC_G, KC_DELETE, KC_MEH, KC_H, KC_J, KC_K, KC_L, LT(MEDIA, KC_SCOLON), LGUI_T(KC_QUOTE), KC_LSPO, LGUI_T(KC_Z), KC_X, KC_C, KC_V, KC_B, KC_N, KC_M, KC_COMMA, KC_DOT, RCTL_T(KC_SLASH), KC_RSPC, LT(SYMB, KC_GRAVE), WEBUSB_PAIR, KC_LALT, KC_LEFT, KC_RIGHT, KC_LALT, LCTL_T(KC_ESCAPE), KC_UP, KC_DOWN, KC_LBRACKET, KC_RBRACKET, MO(SYMB), KC_SPACE, KC_BSPACE, KC_LCTRL, KC_LALT, KC_TAB, KC_ENTER),
-    [SYMB]  = LAYOUT_moonlander(KC_ESCAPE, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, ____, ____, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, ____, KC_EXLM, KC_AT, KC_LCBR, KC_RCBR, KC_PIPE, ____, ____, KC_UP, KC_KP_7, KC_KP_8, KC_KP_9, KC_ASTR, KC_F12, ____, KC_HASH, KC_DLR, KC_LPRN, KC_RPRN, KC_GRAVE, ____, ____, KC_DOWN, KC_KP_4, KC_KP_5, KC_KP_6, KC_KP_PLUS, ____, ____, KC_PERC, KC_CIRC, KC_LBRACKET, KC_RBRACKET, KC_TILD, KC_AMPR, KC_KP_1, KC_KP_2, KC_KP_3, KC_BSLASH, ____, ____, KC_COMMA, HSV_0_255_255, HSV_86_255_128, HSV_172_255_255, RGB_MOD, RGB_TOG, ____, KC_DOT, KC_KP_0, KC_EQUAL, ____, RGB_VAD, RGB_VAI, TOGGLE_LAYER_COLOR, RGB_SLD, RGB_HUD, RGB_HUI),
-    [MEDIA] = LAYOUT_moonlander(AU_TOG, TEST_HID, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, RESET, MU_TOG, ____, ____, KC_MS_UP, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, MU_MOD, ____, KC_MS_LEFT, KC_MS_DOWN, KC_MS_RIGHT, ____, ____, ____, ____, ____, ____, ____, ____, KC_MEDIA_PLAY_PAUSE, ____, ____, ____, ____, ____, ____, ____, ____, KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, ____, ____, ____, ____, ____, KC_MS_BTN1, KC_MS_BTN2, TOGGLE_GUI, ____, KC_AUDIO_VOL_UP, KC_AUDIO_VOL_DOWN, KC_AUDIO_MUTE, ____, ____, ____, ____, ____, ____, ____, KC_WWW_BACK),
+    // clang-format off
+    [BASE]  = LAYOUT_moonlander(KC_EQUAL, KC_1, KC_2, KC_3, KC_4, KC_5, KC_LEFT,    KC_RIGHT, KC_6, KC_7, KC_8, KC_9, KC_0, KC_MINUS,
+                                KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, TG(SYMB),     TG(SYMB), KC_Y, KC_U, KC_I, KC_O, KC_P, KC_BSLASH,
+                                KC_BSPACE, KC_A, KC_S, KC_D, KC_F, KC_G, KC_DELETE, KC_MEH, KC_H, KC_J, KC_K, KC_L, LT(MEDIA, KC_SCOLON), LGUI_T(KC_QUOTE),
+                                KC_LSPO, LGUI_T(KC_Z), KC_X, KC_C, KC_V, KC_B,              KC_N, KC_M, KC_COMMA, KC_DOT, RCTL_T(KC_SLASH), KC_RSPC,
+                                LT(SYMB, KC_GRAVE), WEBUSB_PAIR, KC_LALT, KC_LEFT, KC_RIGHT, KC_LALT, LCTL_T(KC_ESCAPE), KC_UP, KC_DOWN, KC_LBRACKET, KC_RBRACKET, MO(SYMB),
+                                KC_SPACE, KC_BSPACE, KC_LCTRL,                      KC_LALT, KC_TAB, KC_ENTER),
+
+    [NOGUI]  = LAYOUT_moonlander(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+                                _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+                                _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+                                _______, KC_Z, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+                                _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+                                _______, _______, _______, _______, _______, _______),
+
+    [SYMB]  = LAYOUT_moonlander(KC_ESCAPE, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, _______, _______, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11,
+                                _______, KC_EXLM, KC_AT, KC_LCBR, KC_RCBR, KC_PIPE, _______, _______, KC_UP, KC_KP_7, KC_KP_8, KC_KP_9, KC_ASTR, KC_F12,
+                                _______, KC_HASH, KC_DLR, KC_LPRN, KC_RPRN, KC_GRAVE, _______, _______, KC_DOWN, KC_KP_4, KC_KP_5, KC_KP_6, KC_KP_PLUS, _______,
+                                _______, KC_PERC, KC_CIRC, KC_LBRACKET, KC_RBRACKET, KC_TILD, KC_AMPR, KC_KP_1, KC_KP_2, KC_KP_3, KC_BSLASH, _______,
+                                _______, KC_COMMA, HSV_0_255_255, HSV_86_255_128, HSV_172_255_255, RGB_MOD, RGB_TOG, _______, KC_DOT, KC_KP_0, KC_EQUAL, _______,
+                                RGB_VAD, RGB_VAI, TOGGLE_LAYER_COLOR, RGB_SLD, RGB_HUD, RGB_HUI),
+
+    [MEDIA] = LAYOUT_moonlander(AU_TOG, TEST_HID, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, RESET,
+                                MU_TOG, _______, _______, KC_MS_UP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+                                MU_MOD, _______, KC_MS_LEFT, KC_MS_DOWN, KC_MS_RIGHT, _______, _______, _______, _______, _______, _______, _______, _______, KC_MEDIA_PLAY_PAUSE,
+                                _______, TOGGLE_GUI, _______, _______, _______, _______, _______, _______, KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, _______, _______, _______, _______,
+                                _______, KC_MS_BTN1, KC_MS_BTN2, _______, _______, KC_AUDIO_VOL_UP, KC_AUDIO_VOL_DOWN, KC_AUDIO_MUTE, _______, _______,
+                                _______, _______, _______, _______, _______, KC_WWW_BACK),
 };
+// clang-format on
 
 extern bool         g_suspend_state;
 extern rgb_config_t rgb_matrix_config;
@@ -26,7 +52,7 @@ extern led_config_t g_led_config;
 
 void keyboard_post_init_user(void) { rgb_matrix_enable(); }
 
-uint8_t layerBaseColors[][3] = {[BASE] = {HSV_WHITE}, [SYMB] = {HSV_SPRINGGREEN}, [MEDIA] = {HSV_PURPLE}};
+uint8_t layerBaseColors[][3] = {[BASE] = {HSV_WHITE}, [NOGUI] = {HSV_WHITE}, [SYMB] = {HSV_SPRINGGREEN}, [MEDIA] = {HSV_PURPLE}};
 
 #define classes 3
 #define maxKeys 4
@@ -52,6 +78,7 @@ int getKeyCategory(uint16_t keycode) {
         return -1;
     }
     // QMK category detection
+    if (keycode == LGUI_T(KC_Z) && !GUI_ENABLED) return -1;
     if (IS_MOD(keycode)) return modifierKeys;
     if (keycode >= 0x54 && keycode <= 0x85) return numpadKeys;
     if (IS_MOUSEKEY(keycode)) return mouseKeys;
@@ -96,6 +123,7 @@ layer_state_t layer_state_set_user(layer_state_t layer_state) {
     uint8_t layer = biton32(layer_state);
     switch (layer) {
         case BASE:
+        case NOGUI:
             set_layer_color(BASE);
             break;
         case SYMB:
@@ -111,8 +139,7 @@ layer_state_t layer_state_set_user(layer_state_t layer_state) {
     return layer_state;
 }
 
-bool    GUI_ENABLED = true;
-uint8_t testdata[]  = {255, 128, 0};
+uint8_t testdata[] = {255, 128, 0};
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
@@ -141,33 +168,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
         case TOGGLE_GUI:
             if (record->event.pressed) {
-                switch (GUI_ENABLED) {
-                    case true:
-                        process_magic(GUI_OFF, record);
-                        GUI_ENABLED = false;
-                        return false;
-                    case false:
-                        process_magic(GUI_ON, record);
-                        GUI_ENABLED = true;
-                        return false;
-                }
+                default_layer_set(1 + GUI_ENABLED);
+                GUI_ENABLED = !GUI_ENABLED;
+                return false;
             }
         case TEST_HID:
             if (record->event.pressed) {
                 raw_hid_receive(testdata, 3);
                 return false;
             }
-        case LGUI_T(KC_Z):
-        //if we have winkey turned off we want to just treat it like the Z key. otherwise normal
-            if (GUI_ENABLED) {
-                return true;
-            }
-            if (record->event.pressed) {
-                register_code(KC_Z);
-            } else {
-                unregister_code(KC_Z);
-            }
-            return false;
     }
     return true;
 }
